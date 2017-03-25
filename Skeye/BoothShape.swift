@@ -19,6 +19,12 @@ class BoothShape
     var select: UITapGestureRecognizer
     var move: UIPanGestureRecognizer
     
+    var name: String = ""
+    var info: String = ""
+    var date: String = ""
+    //var picture: UIImage? = nil
+    var boothPhotos : [UIImage] = []
+    
     init(_ point: CGPoint, _ size: CGSize, _ shape: String, _ color: String)
     {
         origin = point
@@ -26,6 +32,14 @@ class BoothShape
         image = shape
         col = color
         button = UIButton()
+        zoom = UIPinchGestureRecognizer.init()
+        select = UITapGestureRecognizer.init()
+        move = UIPanGestureRecognizer.init()
+        
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     /*
@@ -48,17 +62,25 @@ class BoothShape
             default: break
             }
         default: break
+        }
         zoom = UIPinchGestureRecognizer.init(target: self, action: #selector(pinch))
         select = UITapGestureRecognizer.init(target: self, action: #selector(tap))
-            //        move = UIPanGestureRecognizer.init(target: self, action: #selector(move))
-        }
+        //move = UIPanGestureRecognizer.init(target: self, action: #selector(move))
+        self.button.addGestureRecognizer(zoom)
+        self.button.addGestureRecognizer(select)
     }
     
-    @objc func tap(gesture: UITapGestureRecognizer)
+     @objc func tap(gesture: UITapGestureRecognizer)
     {
+        print("Tap")
+
+        let mapVC = UIApplication.shared.keyWindow?.rootViewController as! MapController
+        mapVC.popoverFromBoothMethod(sender: self)
+        
         
         if(col == "red")
         {
+            
             col = "white"
             button.setBackgroundImage(UIImage.init(named: "WhiteCircle"), for: UIControlState.normal)
         }
@@ -71,6 +93,7 @@ class BoothShape
     
     @objc func pinch(gesture: UIPinchGestureRecognizer)
     {
+        print("PInch")
         if let viewer = gesture.view
         {
             if !(viewer.frame.height < 250 && viewer.frame.width < 250 && gesture.scale < 1)
@@ -80,4 +103,11 @@ class BoothShape
             }
         }
     }
+    
+    
+    
+    
+
 }
+
+

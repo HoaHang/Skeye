@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  MapController.swift
 //  Skeye
 //
 //  Created by Kevin Dang on 2/6/17.
@@ -8,8 +8,23 @@
 
 import UIKit
 
-class ViewController: UIViewController
+//commented UIVC
+class MapController: UIViewController, UIPopoverPresentationControllerDelegate, DataSentDelegate
 {
+    /* Delegate-related: mainVC implement protocal fucntion*/
+    internal func userDidEditInfo(data: String, whichBooth: BoothShape) {
+        whichBooth.info = data
+    }
+    internal func userDidEditName(data: String, whichBooth: BoothShape) {
+        whichBooth.name = data
+    }
+    internal func userDidUploadPic(data: [UIImage], whichBooth: BoothShape){
+        whichBooth.boothPhotos = data
+    }
+    internal func userDidEditDate(data: String, whichBooth: BoothShape) {
+        whichBooth.date = data
+    }
+    
     /* Map Boundaries */
     var frameMinimum: CGFloat = 250 //allowed frame boundaries
     var zoomMinimum: CGFloat = 400 //minimum zoom screen size
@@ -25,6 +40,9 @@ class ViewController: UIViewController
     var zoom: UIPinchGestureRecognizer = UIPinchGestureRecognizer.init()
     var select: UITapGestureRecognizer = UITapGestureRecognizer.init()
     var move: UIPanGestureRecognizer = UIPanGestureRecognizer.init()
+    
+    //retain a reference of selected booth
+    var currentBooth: BoothShape? = nil
     
     override func viewDidLoad()
     {
@@ -53,6 +71,7 @@ class ViewController: UIViewController
             mapImage.addGestureRecognizer(select)
             move = UIPanGestureRecognizer(target: self, action: #selector(pan))
             mapImage.addGestureRecognizer(move)
+            
         }
     }
     
@@ -92,6 +111,7 @@ class ViewController: UIViewController
     */
     func tap(gesture: UITapGestureRecognizer)
     {
+
         if(shapeSelected == true)
         {
             shapeSelected = false
@@ -113,9 +133,73 @@ class ViewController: UIViewController
     func createBooth(_ point: CGPoint, _ shape: String)
     {
         let newButton: BoothShape = BoothShape.init(point, CGSize.init(width: 50, height: 50), shape, "white")
+        newButton.name = "Default Name"
+        newButton.info = "Default Info"
+        newButton.date = ""
         newButton.draw(mapImage.bounds)
-        mapImage.addSubview(newButton.button)
+
+        //add function for button programatially
+        //newButton.button.addTarget(self, action: #selector(popoverFromBoothMethod), for: .touchUpInside)
         buttons.append(newButton)
+        mapImage.addSubview(newButton.button)
+        
+        
+        
     }
+    
+    func popoverFromBoothMethod (sender: AnyObject)
+    {
+        let castedSender : BoothShape = sender as! BoothShape
+
+            //print(sender.name)
+            /* This is the line of code that calls the 'prepareforSegue' method,but we are not using it */
+            //performSegue(withIdentifier: "editBoothPopover", sender: sender)
+            //print(castedSender.name + " Here!")
+    
+        
+
+            let rootVC = UIApplication.shared.keyWindow?.rootViewController
+
+                //print(NSStringFromClass(rootVC!.classForCoder))
+
+        
+            //let strBoard = UIStoryboard(name: "Main", bundle: nil)
+            let popoverController = rootVC!.storyboard!.instantiateViewController(withIdentifier: "editBoothViewController") as! EditBoothViewController
+ 
+        
+            //get a reference to the view controller for the popover
+            popoverController.boothRef = castedSender //as? BoothShape
+            popoverController.name = castedSender.name
+            popoverController.info = castedSender.info
+            popoverController.date = castedSender.date
+            popoverController.boothImages = castedSender.boothPhotos
+            popoverController.delegate = self
+            
+            // set the presentation style
+            popoverController.modalPresentationStyle = UIModalPresentationStyle.popover
+            
+            // set up the popover presentation controller
+            popoverController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection.any
+            //popController?.preferredContentSize = CGSize(width:300, height: 300)
+            //popController?.preferredContentSize = CGSize(width: UIScreen.main.nativeBounds.size.width*0.5,height:UIScreen.main.nativeBounds.size.height*0.5)
+            //UIScreen.main.nativeBounds.size * 0.5
+            popoverController.popoverPresentationController?.delegate = self
+            popoverController.popoverPresentationController?.sourceView = castedSender.button //as? UIView
+            // set anchor programatically
+            popoverController.popoverPresentationController?.sourceRect = castedSender.button.bounds
+            
+            // present the popover
+            self.present(popoverController, animated: true, completion: nil)
+        
+    }
+    
+//    //if remove this then, iphone will show popover as a full page
+//    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+//        return UIModalPresentationStyle.none
+//    }
+
+    
+    
 }
 
+    
